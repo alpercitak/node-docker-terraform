@@ -2,13 +2,15 @@ FROM node:18-alpine AS base
 
 WORKDIR /app
 RUN npm i -g pnpm
-COPY pnpm-lock.yaml ./
+COPY package.json pnpm-lock.yaml ./
 RUN pnpm fetch
+RUN pnpm install --offline --prod
 
-FROM base AS deploy
+FROM node:18-alpine AS deploy
 
 WORKDIR /app
-COPY package.json index.js ./
-RUN pnpm install --offline --prod
+COPY index.js ./
+COPY --from=base ./app/package.json ./
+COPY --from=base ./app/node_modules ./node_modules
 
 CMD ["node", "index.js"]
