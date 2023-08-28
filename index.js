@@ -4,7 +4,10 @@ const app = express();
 const PORT = process.env.NODE_PORT || 3000;
 
 app.get('/', (req, res) => {
-  return res.json({ message: process.env.APP_NAME }).status(200);
+  res
+    .send({ message: process.env.APP_NAME ?? 'default' })
+    .status(200)
+    .end();
 });
 
 app.listen(PORT, () => {

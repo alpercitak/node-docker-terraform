@@ -4,7 +4,7 @@ WORKDIR /app
 RUN npm i -g pnpm
 COPY package.json pnpm-lock.yaml ./
 RUN pnpm fetch
-RUN pnpm install --offline --prod
+RUN pnpm i --offline --prod
 
 FROM node:18-alpine AS deploy
 
