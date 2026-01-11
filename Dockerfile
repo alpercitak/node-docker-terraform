@@ -1,4 +1,4 @@
-FROM node:18-alpine AS base
+FROM node:25-alpine AS base
 
 WORKDIR /app
 RUN npm i -g pnpm
@@ -6,7 +6,7 @@ COPY package.json pnpm-lock.yaml ./
 RUN pnpm fetch
 RUN pnpm i --offline --prod
 
-FROM node:18-alpine AS deploy
+FROM node:25-alpine AS deploy
 
 WORKDIR /app
 COPY index.js ./
