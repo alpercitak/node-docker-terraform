@@ -9,7 +9,7 @@ RUN pnpm i --offline --prod
 FROM node:25-alpine AS deploy
 
 WORKDIR /app
-COPY index.js ./
+COPY src/index.js ./
 COPY --from=base ./app/package.json ./
 COPY --from=base ./app/node_modules ./node_modules
 
