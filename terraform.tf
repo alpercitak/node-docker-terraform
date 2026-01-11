@@ -2,12 +2,17 @@ terraform {
   required_providers {
     docker = {
       source  = "kreuzwerker/docker"
-      version = "~> 3.6.0"
+      version = "~> 3.6.2"
     }
   }
 }
 
 provider "docker" {}
+
+# Create a private network for your services
+resource "docker_network" "private_network" {
+  name = "app_network"
+}
 
 resource "docker_image" "nginx" {
   name         = "nginx:1.29.4-alpine-slim"
@@ -15,83 +20,54 @@ resource "docker_image" "nginx" {
 }
 
 resource "docker_container" "nginx" {
-  image = docker_image.nginx.name
+  image = docker_image.nginx.image_id
   name  = "node-docker-terraform-nginx"
 
-  must_run          = true
-  restart           = "always"
-  publish_all_ports = false
-  depends_on = [
-    docker_container.app1,
-    docker_container.app2
-  ]
-  links = [
-    "node-docker-terraform-app-1:node-docker-terraform-app-1",
-    "node-docker-terraform-app-2:node-docker-terraform-app-2"
-  ]
+  # Assign to the network
+  networks_advanced {
+    name = docker_network.private_network.name
+  }
 
   ports {
     internal = 80
     external = 3000
-    protocol = "tcp"
   }
 
   upload {
-    content = file("nginx.conf")
+    content = file("${path.module}/nginx.conf")
     file    = "/etc/nginx/nginx.conf"
   }
+
+  depends_on = [docker_container.app1, docker_container.app2]
 }
 
-resource "docker_image" "node-docker-terraform-image" {
+resource "docker_image" "node_app" {
   name = "node-docker-terraform-image"
-
   build {
-    path       = "."
+    context    = "."
     dockerfile = "Dockerfile"
     target     = "deploy"
   }
 }
 
 resource "docker_container" "app1" {
-  image = docker_image.node-docker-terraform-image.image_id
+  image = docker_image.node_app.image_id
   name  = "node-docker-terraform-app-1"
+  
+  networks_advanced {
+    name = docker_network.private_network.name
+  }
 
   env = ["NODE_PORT=3001", "APP_NAME=app1"]
-  # entrypoint        = ["nohup", "node", "./index.js", "&"]
-  must_run          = true
-  restart           = "always"
-  publish_all_ports = true
-
-
-  upload {
-    content = file("package.json")
-    file    = "app/package.json"
-  }
-
-  upload {
-    content = file("index.js")
-    file    = "app/index.js"
-  }
 }
 
 resource "docker_container" "app2" {
-  image = docker_image.node-docker-terraform-image.image_id
+  image = docker_image.node_app.image_id
   name  = "node-docker-terraform-app-2"
 
+  networks_advanced {
+    name = docker_network.private_network.name
+  }
+
   env = ["NODE_PORT=3002", "APP_NAME=app2"]
-  # entrypoint        = ["nohup", "node", "./index.js", "&"]
-  must_run          = true
-  restart           = "always"
-  publish_all_ports = true
-
-
-  upload {
-    content = file("package.json")
-    file    = "app/package.json"
-  }
-
-  upload {
-    content = file("index.js")
-    file    = "app/index.js"
-  }
 }

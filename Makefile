@@ -10,4 +10,4 @@ apply:
 	terraform apply --auto-approve; \
 
 destroy:
-	terraform destroy	--auto-approve; \
+	terraform destroy --auto-approve; \
