@@ -15,7 +15,7 @@ resource "docker_network" "private_network" {
 }
 
 resource "docker_image" "nginx" {
-  name         = "nginx:1.29.4-alpine-slim"
+  name         = "nginx:1.29.5-alpine-slim"
   keep_locally = false
 }
 
